@@ -746,7 +746,32 @@ public class MmsSmsDatabaseHelper extends SQLiteOpenHelper {
                    Threads.HAS_ATTACHMENT + " INTEGER DEFAULT 0);");
 
         /**
-         * This table stores the qu
+         * This table stores the queue of messages to be sent/downloaded.
+         */
+        db.execSQL("CREATE TABLE " + MmsSmsProvider.TABLE_PENDING_MSG +" (" +
+                   PendingMessages._ID + " INTEGER PRIMARY KEY," +
+                   PendingMessages.PROTO_TYPE + " INTEGER," +
+                   PendingMessages.MSG_ID + " INTEGER," +
+                   PendingMessages.MSG_TYPE + " INTEGER," +
+                   PendingMessages.ERROR_TYPE + " INTEGER," +
+                   PendingMessages.ERROR_CODE + " INTEGER," +
+                   PendingMessages.RETRY_INDEX + " INTEGER NOT NULL DEFAULT 0," +
+                   PendingMessages.DUE_TIME + " INTEGER," +
+                   PendingMessages.LAST_TRY + " INTEGER);");
+
+    }
+
+    // TODO Check the query plans for these triggers.
+    private void createCommonTriggers(SQLiteDatabase db) {
+        // Updates threads table whenever a message is added to pdu.
+        db.execSQL("CREATE TRIGGER pdu_update_thread_on_insert AFTER INSERT ON " +
+                   MmsProvider.TABLE_PDU + " " +
+                   PDU_UPDATE_THREAD_CONSTRAINTS +
+                   PDU_UPDATE_THREAD_DATE_SNIPPET_COUNT_ON_UPDATE);
+
+        // Updates threads table whenever a message is added to sms.
+        db.execSQL("CREATE TRIGGER sms_update_thread_on_insert AFTER INSERT ON sms " +
+                   SMS_UPDATE_THREAD_DATE_SNIPPET_COUNT_ON_UPDATE);
 
         // Updates threads table whenever a message in pdu is updated.
         db.execSQL("CREATE TRIGGER pdu_update_thread_date_subject_on_update AFTER" +
